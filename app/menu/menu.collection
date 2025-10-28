@@ -1,0 +1,13 @@
+name: "menu"
+scale_along_z: 0
+embedded_instances {
+  id: "ui"
+  data: "components {\n"
+  "  id: \"menu\"\n"
+  "  component: \"/menu/menu.gui\"\n"
+  "}\n"
+  ""
+  position {
+    y: -960.0
+  }
+}

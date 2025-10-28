@@ -1,0 +1,44 @@
+images {
+  image: "/assets/ui/star_0.png"
+}
+images {
+  image: "/assets/ui/star_1.png"
+}
+images {
+  image: "/assets/ui/btn_b.png"
+}
+images {
+  image: "/assets/ui/circle_2l.png"
+}
+images {
+  image: "/assets/ui/close.png"
+}
+images {
+  image: "/assets/ui/exit.png"
+}
+images {
+  image: "/assets/ui/home.png"
+}
+images {
+  image: "/assets/ui/setings.png"
+}
+images {
+  image: "/assets/ui/share.png"
+}
+images {
+  image: "/assets/ui/snd_0.png"
+}
+images {
+  image: "/assets/ui/snd_1.png"
+}
+images {
+  image: "/assets/ui/cir_b.png"
+}
+images {
+  image: "/assets/ui/32.png"
+}
+images {
+  image: "/assets/ui/32p.png"
+}
+margin: 1
+inner_padding: 1
