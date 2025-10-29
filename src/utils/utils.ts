@@ -132,3 +132,7 @@ export function set_position_xy(item: hash, x: number, y: number) {
     pos.y = y;
     go.set_position(pos, item);
 }
+
+export function generate_random_integer(max: number): number {
+    return math.floor(math.random() * max);
+}

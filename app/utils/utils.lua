@@ -173,4 +173,7 @@ function ____exports.set_position_xy(item, x, y)
     pos.y = y
     go.set_position(pos, item)
 end
+function ____exports.generate_random_integer(max)
+    return math.floor(math.random() * max)
+end
 return ____exports
