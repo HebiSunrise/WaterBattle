@@ -90,7 +90,7 @@ function ManagerModule() {
     function check_ready(callback_ready?: VoidCallback) {
         const id_timer = timer.delay(0.1, true, () => {
             // список модулей с ожиданием готовности
-            if (Ads.is_ready()  && Resource.is_ready()) {
+            if (Ads.is_ready() && Resource.is_ready()) {
                 timer.cancel(id_timer);
                 _is_ready = true;
                 log('All Managers ready ver: ' + sys.get_config("project.version"));

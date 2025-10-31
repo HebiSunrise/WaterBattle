@@ -6,6 +6,18 @@ export enum Direction {
     VERTICAL
 }
 
+export enum ShotState {
+    HIT,
+    MISS,
+    KILL,
+    ERROR
+}
+
+export interface ShotInfo {
+    state: ShotState;
+    data?: { x: number, y: number }[];
+}
+
 interface ShipBB {
     start: { x: number, y: number };
     end: { x: number, y: number };
@@ -107,10 +119,16 @@ export function Battle() {
         return ship_uid;
     }
 
-    function try_damage(x: number, y: number): boolean {
+    function shot(x: number, y: number): ShotInfo {
+        const cell_state = field.get_value(x, y);
+
         if (!has_ship_part(x, y)) {
             field.set_value(x, y, CellState.MISS);
-            return false;
+            return { state: ShotState.MISS };
+        }
+
+        if (cell_state == CellState.HIT || cell_state == CellState.MISS) {
+            return { state: ShotState.ERROR };
         }
 
         field.set_value(x, y, CellState.HIT);
@@ -119,22 +137,26 @@ export function Battle() {
         ships_lifes[ship]--;
 
         if (ships_lifes[ship] == 0) {
-            miss_around_ship(ship);
+            return { state: ShotState.KILL, data: miss_around_ship(ship) };
         }
 
-        return true;
+        return { state: ShotState.HIT };
     }
 
-    function miss_around_ship(ship: number) {
+    function miss_around_ship(ship: number): { x: number, y: number }[] {
         const { start, end } = ships_bb[ship];
+        const misses: { x: number, y: number }[] = [];
         for (let y = start.y - 1; y <= end.y + 1; y++) {
             for (let x = start.x - 1; x <= end.x + 1; x++) {
                 if (field.in_boundaries(x, y)) {
-                    if (field.get_value(x, y) != CellState.SHIP)
+                    if (field.get_value(x, y) != CellState.HIT) {
                         field.set_value(x, y, CellState.MISS);
+                        misses.push({ x, y });
+                    }
                 }
             }
         }
+        return misses;
     }
 
     function is_win(): boolean {
@@ -157,7 +179,7 @@ export function Battle() {
         return field;
     }
 
-    return { setup, auto_place_ships, try_damage, get_field };
+    return { setup, auto_place_ships, shot, get_field, is_win };
 }
 
 export type Battle = ReturnType<typeof Battle>;

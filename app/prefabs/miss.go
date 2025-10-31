@@ -1,0 +1,16 @@
+embedded_components {
+  id: "sprite"
+  type: "sprite"
+  data: "default_animation: \"circle_2l\"\n"
+  "material: \"/assets/materials/blue_material.material\"\n"
+  "size {\n"
+  "  x: 34.0\n"
+  "  y: 34.0\n"
+  "}\n"
+  "size_mode: SIZE_MODE_MANUAL\n"
+  "textures {\n"
+  "  sampler: \"texture_sampler\"\n"
+  "  texture: \"/assets/ui/UI.atlas\"\n"
+  "}\n"
+  ""
+}

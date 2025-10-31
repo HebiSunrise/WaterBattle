@@ -6,8 +6,8 @@ render = /render/render.renderc
 shared_state = 1
 
 [display]
-width = 540
-height = 960
+width = 960
+height = 540
 display_profiles = /project_settings/my_profile.display_profilesc
 high_dpi = 1
 
@@ -65,4 +65,7 @@ bundle_identifier = sbGames.templateProject
 bundle_name = templateProject
 bundle_version = 1
 icons_asset = /project_settings/Assets.car
+
+[sprite]
+max_count = 512
 
