@@ -1,6 +1,6 @@
 local ____exports = {}
-local ____game_logic = require("game.game_logic")
-local Game = ____game_logic.Game
+local ____game = require("game.game")
+local Game = ____game.Game
 function ____exports.init(self)
     msg.post(".", "acquire_input_focus")
     self.game = Game()

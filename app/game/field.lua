@@ -38,12 +38,30 @@ function ____exports.Field(width, height)
     local function get_index(x, y)
         return y * width + x
     end
+    local function ____debug()
+        do
+            local y = 0
+            while y < height do
+                local output = ""
+                do
+                    local x = 0
+                    while x < width do
+                        output = (output .. " ") .. tostring(get_value(x, y))
+                        x = x + 1
+                    end
+                end
+                log((tostring(y + 1) .. " ") .. output)
+                y = y + 1
+            end
+        end
+    end
     init()
     return {
         set_value = set_value,
         get_value = get_value,
         in_boundaries = in_boundaries,
         get_index = get_index,
+        debug = ____debug,
         width = width,
         height = height
     }

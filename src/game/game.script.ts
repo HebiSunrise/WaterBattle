@@ -5,7 +5,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
-import { Game } from './game_logic';
+import { Game } from './game';
 
 interface props {
     game: Game

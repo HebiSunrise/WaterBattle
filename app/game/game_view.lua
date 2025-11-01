@@ -60,7 +60,7 @@ function ____exports.Game()
                 break
             end
         until true
-        debug_field()
+        battle.user.get_field().debug()
     end
     function render_shot(x, y, state)
         gm.make_go(

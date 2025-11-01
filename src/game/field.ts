@@ -33,9 +33,19 @@ export function Field(width: number, height: number) {
         return y * width + x;
     }
 
+    function debug() {
+        for (let y = 0; y < height; y++) {
+            let output = '';
+            for (let x = 0; x < width; x++) {
+                output = output + " " + get_value(x, y);
+            }
+            log(y + 1 + " " + output);
+        }
+    }
+
     init();
 
-    return { set_value, get_value, in_boundaries, get_index, width: width, height: height };
+    return { set_value, get_value, in_boundaries, get_index, debug, width: width, height: height };
 }
 
 export type Field = ReturnType<typeof Field>;

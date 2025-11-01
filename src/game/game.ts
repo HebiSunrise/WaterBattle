@@ -14,6 +14,9 @@ import * as flow from 'ludobits.m.flow';
 import { GoManager } from '../modules/GoManager';
 import { Battle, ShotState } from './battle';
 import { Messages } from '../modules/modules_const';
+import { Config } from './config';
+import { Field } from './field';
+import { Player } from './player';
 
 interface CellData {
     x: number;
@@ -25,45 +28,22 @@ export function Game() {
     const cell_size = 34;
     const gm = GoManager();
     const battle = Battle();
-    const start_pos_ufield_x = 50;
-    const start_pos_ufield_y = -50;
-    const start_pos_bfield_x = 440;
-    const start_pos_bfield_y = -50;
 
     function init() {
-        battle.setup(10, 10);
         EventBus.on('MSG_ON_UP', on_click);
-
-        battle.auto_place_ships([
-            { length: 4, count: 1 },
-            { length: 3, count: 2 },
-            { length: 2, count: 3 },
-            { length: 1, count: 4 },
-        ]);
-
-        debug_field();
-
-        render_field(start_pos_ufield_x, start_pos_ufield_y);
-        render_field(start_pos_bfield_x, start_pos_bfield_y);
+        render_player(Config.start_pos_ufield_x, Config.start_pos_ufield_y, battle.user);
+        render_player(Config.start_pos_bfield_x, Config.start_pos_bfield_y, battle.bot);
     }
 
-    function render_field(start_pos_x: number, start_pos_y: number) {
-        const field = battle.get_field();
+    function render_player(st_x: number, st_y: number, player: Player) {
+        render_field(st_x, st_y, player.get_field());
+    }
+
+    function render_field(start_pos_x: number, start_pos_y: number, field: Field) {
         for (let y = 0; y < field.height; y++) {
             for (let x = 0; x < field.width; x++) {
                 gm.make_go("cell", vmath.vector3(x * 34 + start_pos_x, y * (-34) + start_pos_y, 0));
             }
-        }
-    }
-
-    function debug_field() {
-        const field = battle.get_field();
-        for (let y = 0; y < field.height; y++) {
-            let output = '';
-            for (let x = 0; x < field.width; x++) {
-                output = output + " " + field.get_value(x, y);
-            }
-            log(y + 1 + " " + output);
         }
     }
 
@@ -82,38 +62,37 @@ export function Game() {
     function on_click(pos: { x: number, y: number }) {
         const tmp = Camera.window_to_world(pos.x, pos.y);
         log(tmp.x, " ", tmp.y);
-        // const cell_cord = in_cell(start_pos_ufield_x, start_pos_ufield_y, tmp);
-        const cell_cord = in_cell(start_pos_bfield_x, start_pos_bfield_y, tmp);
+        const cell_cord = in_cell(Config.start_pos_bfield_x, Config.start_pos_bfield_y, tmp);
         log(cell_cord);
         if (!cell_cord) {
             return;
         }
-        const shot_state = battle.shot(cell_cord.x, cell_cord.y);
+        const shot_state = battle.bot.shot(cell_cord.x, cell_cord.y);
         switch (shot_state.state) {
             case ShotState.HIT:
-                render_shot(cell_cord.x, cell_cord.y, "hit");
+                render_shot(cell_cord.x, cell_cord.y, "hit", Config.start_pos_bfield_x, Config.start_pos_bfield_y);
                 break;
             case ShotState.MISS:
-                render_shot(cell_cord.x, cell_cord.y, "miss");
+                render_shot(cell_cord.x, cell_cord.y, "miss", Config.start_pos_bfield_x, Config.start_pos_bfield_y);
                 break;
             case ShotState.KILL:
-                render_killed(cell_cord.x, cell_cord.y, shot_state.data!);
+                render_killed(cell_cord.x, cell_cord.y, shot_state.data!, Config.start_pos_bfield_x, Config.start_pos_bfield_y);
                 break;
         }
-        debug_field();
+        battle.bot.get_field().debug();
     }
 
-    function render_shot(x: number, y: number, state: string) {
-        gm.make_go(state, vmath.vector3(x * cell_size + start_pos_bfield_x, y * (-cell_size) + start_pos_bfield_y, 1));
+    function render_shot(x: number, y: number, state: string, st_x: number, st_y: number) {
+        gm.make_go(state, vmath.vector3(x * cell_size + st_x/*Config.start_pos_bfield_x,*/, y * (-cell_size) + st_y, 1));
     }
 
-    function render_killed(x: number, y: number, data: { x: number, y: number }[]) {
-        render_shot(x, y, "hit");
+    function render_killed(x: number, y: number, data: { x: number, y: number }[], field_start_pos_x: number, field_start_pos_y: number) {
+        render_shot(x, y, "hit", field_start_pos_x, field_start_pos_y);
         for (let i = 0; i < data.length; i++) {
             const cord = data[i];
-            render_shot(cord.x, cord.y, "miss");
+            render_shot(cord.x, cord.y, "miss", field_start_pos_x, field_start_pos_y);
         }
-        if (battle.is_win()) {
+        if (battle.bot.is_win()) {
             log("win");
         }
     }
