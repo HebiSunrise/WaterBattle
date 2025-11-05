@@ -6,8 +6,10 @@ local Battle = ____battle.Battle
 local ShotState = ____battle.ShotState
 local ____config = require("game.config")
 local Config = ____config.Config
+local ____bot = require("game.bot")
+local Bot = ____bot.Bot
 function ____exports.Game()
-    local render_player, render_field, in_cell, on_click, render_shot, render_killed, cell_size, gm, battle
+    local render_player, render_field, on_turn_start, on_turn_end, on_shot_end, on_win, shot_animate, on_click, in_cell, render_shot, render_killed, cell_size, gm, PLAYER_INDEX, BOT_INDEX, battle, bot, is_block_input
     function render_player(st_x, st_y, player)
         render_field(
             st_x,
@@ -33,6 +35,100 @@ function ____exports.Game()
             end
         end
     end
+    function on_turn_start()
+        local idx = battle.get_current_turn_player_index()
+        repeat
+            local ____switch9 = idx
+            local step, state
+            local ____cond9 = ____switch9 == PLAYER_INDEX
+            if ____cond9 then
+                is_block_input = false
+                break
+            end
+            ____cond9 = ____cond9 or ____switch9 == BOT_INDEX
+            if ____cond9 then
+                step = bot.step()
+                state = battle.shot(step.x, step.y)
+                timer.delay(
+                    0.5,
+                    false,
+                    function() return shot_animate(
+                        state,
+                        step.x,
+                        step.y,
+                        Config.start_pos_ufield_x,
+                        Config.start_pos_ufield_y,
+                        on_shot_end
+                    ) end
+                )
+                break
+            end
+        until true
+    end
+    function on_turn_end()
+        is_block_input = true
+    end
+    function on_shot_end()
+        battle.end_turn()
+    end
+    function on_win()
+        log("Победил игрок " .. tostring(battle.get_current_turn_player_index()))
+    end
+    function shot_animate(info, pos_x, pos_y, st_pos_fld_x, st_pos_fld_y, on_end)
+        repeat
+            local ____switch15 = info.state
+            local ____cond15 = ____switch15 == ShotState.HIT
+            if ____cond15 then
+                render_shot(
+                    pos_x,
+                    pos_y,
+                    "hit",
+                    st_pos_fld_x,
+                    st_pos_fld_y
+                )
+                break
+            end
+            ____cond15 = ____cond15 or ____switch15 == ShotState.MISS
+            if ____cond15 then
+                render_shot(
+                    pos_x,
+                    pos_y,
+                    "miss",
+                    st_pos_fld_x,
+                    st_pos_fld_y
+                )
+                break
+            end
+            ____cond15 = ____cond15 or ____switch15 == ShotState.KILL
+            if ____cond15 then
+                render_killed(
+                    pos_x,
+                    pos_y,
+                    info.data,
+                    st_pos_fld_x,
+                    st_pos_fld_y
+                )
+                break
+            end
+        until true
+        on_end()
+    end
+    function on_click(pos)
+        local tmp = Camera.window_to_world(pos.x, pos.y)
+        local cell_cord = in_cell(Config.start_pos_efield_x, Config.start_pos_efield_y, tmp)
+        if not cell_cord then
+            return
+        end
+        local state = battle.shot(cell_cord.x, cell_cord.y)
+        shot_animate(
+            state,
+            cell_cord.x,
+            cell_cord.y,
+            Config.start_pos_efield_x,
+            Config.start_pos_efield_y,
+            on_shot_end
+        )
+    end
     function in_cell(start_pos_x, start_pos_y, pos)
         local x = math.floor((pos.x - (start_pos_x - cell_size * 0.5)) / cell_size)
         local y = math.floor((-pos.y + (start_pos_y + cell_size * 0.5)) / cell_size)
@@ -41,57 +137,10 @@ function ____exports.Game()
         end
         return {x = x, y = y}
     end
-    function on_click(pos)
-        local tmp = Camera.window_to_world(pos.x, pos.y)
-        log(tmp.x, " ", tmp.y)
-        local cell_cord = in_cell(Config.start_pos_bfield_x, Config.start_pos_bfield_y, tmp)
-        log(cell_cord)
-        if not cell_cord then
-            return
-        end
-        local shot_state = battle.bot.shot(cell_cord.x, cell_cord.y)
-        repeat
-            local ____switch13 = shot_state.state
-            local ____cond13 = ____switch13 == ShotState.HIT
-            if ____cond13 then
-                render_shot(
-                    cell_cord.x,
-                    cell_cord.y,
-                    "hit",
-                    Config.start_pos_bfield_x,
-                    Config.start_pos_bfield_y
-                )
-                break
-            end
-            ____cond13 = ____cond13 or ____switch13 == ShotState.MISS
-            if ____cond13 then
-                render_shot(
-                    cell_cord.x,
-                    cell_cord.y,
-                    "miss",
-                    Config.start_pos_bfield_x,
-                    Config.start_pos_bfield_y
-                )
-                break
-            end
-            ____cond13 = ____cond13 or ____switch13 == ShotState.KILL
-            if ____cond13 then
-                render_killed(
-                    cell_cord.x,
-                    cell_cord.y,
-                    shot_state.data,
-                    Config.start_pos_bfield_x,
-                    Config.start_pos_bfield_y
-                )
-                break
-            end
-        until true
-        battle.bot.get_field().debug()
-    end
-    function render_shot(x, y, state, st_x, st_y)
+    function render_shot(x, y, state, field_start_pos_x, field_start_pos_y)
         gm.make_go(
             state,
-            vmath.vector3(x * cell_size + st_x, y * -cell_size + st_y, 1)
+            vmath.vector3(x * cell_size + field_start_pos_x, y * -cell_size + field_start_pos_y, 1)
         )
     end
     function render_killed(x, y, data, field_start_pos_x, field_start_pos_y)
@@ -116,19 +165,39 @@ function ____exports.Game()
                 i = i + 1
             end
         end
-        if battle.bot.is_win() then
-            log("win")
-        end
     end
     cell_size = 34
     gm = GoManager()
+    PLAYER_INDEX = 0
+    BOT_INDEX = 1
     battle = Battle()
+    bot = Bot()
+    is_block_input = true
     local function init()
         EventBus.on("MSG_ON_UP", on_click)
-        render_player(Config.start_pos_ufield_x, Config.start_pos_ufield_y, battle.user)
-        render_player(Config.start_pos_bfield_x, Config.start_pos_bfield_y, battle.bot)
+        battle.setup({
+            width = Config.field_width,
+            height = Config.field_height,
+            start_turn_callback = on_turn_start,
+            end_turn_callback = on_turn_end,
+            win_callback = on_win
+        })
+        render_player(
+            Config.start_pos_ufield_x,
+            Config.start_pos_ufield_y,
+            battle.get_player(PLAYER_INDEX)
+        )
+        render_player(
+            Config.start_pos_efield_x,
+            Config.start_pos_efield_y,
+            battle.get_player(BOT_INDEX)
+        )
+        battle.start()
     end
     local function on_message(message_id, message)
+        if is_block_input then
+            return
+        end
         gm.do_message(message_id, message)
     end
     init()

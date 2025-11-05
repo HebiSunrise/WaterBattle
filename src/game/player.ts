@@ -25,7 +25,6 @@ interface ShipBB {
 }
 
 export function Player() {
-    setup(Config.field_heigth, Config.field_width);
 
     let uid_counter = 0;
     let field: Field;
@@ -37,6 +36,7 @@ export function Player() {
 
     function setup(fieldWidth: number, fieldHiegth: number) {
         field = Field(fieldWidth, fieldHiegth);
+        log(field.get_value(0, 0));
     }
 
     function auto_place_ships(ships: { length: number, count: number }[]) {
@@ -122,30 +122,6 @@ export function Player() {
         return ship_uid;
     }
 
-    function shot(x: number, y: number): ShotInfo {
-        const cell_state = field.get_value(x, y);
-
-        if (!has_ship_part(x, y)) {
-            field.set_value(x, y, CellState.MISS);
-            return { state: ShotState.MISS };
-        }
-
-        if (cell_state == CellState.HIT || cell_state == CellState.MISS) {
-            return { state: ShotState.ERROR };
-        }
-
-        field.set_value(x, y, CellState.HIT);
-
-        const ship = get_ship(x, y);
-        ships_lifes[ship]--;
-
-        if (ships_lifes[ship] == 0) {
-            return { state: ShotState.KILL, data: miss_around_ship(ship) };
-        }
-
-        return { state: ShotState.HIT };
-    }
-
     function miss_around_ship(ship: number): { x: number, y: number }[] {
         const { start, end } = ships_bb[ship];
         const misses: { x: number, y: number }[] = [];
@@ -182,7 +158,17 @@ export function Player() {
         return field;
     }
 
-    return { setup, auto_place_ships, shot, get_field, is_win };
+    return {
+        setup,
+        auto_place_ships,
+        get_field,
+        is_win,
+        has_ship_part,
+        get_ship,
+        miss_around_ship,
+        ships_lifes: ships_lifes,
+        ships_uids: ships_uids
+    };
 }
 
 export type Player = ReturnType<typeof Player>;

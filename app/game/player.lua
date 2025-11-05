@@ -7,8 +7,6 @@ local generate_random_integer = ____utils.generate_random_integer
 local ____field = require("game.field")
 local CellState = ____field.CellState
 local Field = ____field.Field
-local ____config = require("game.config")
-local Config = ____config.Config
 ____exports.Direction = Direction or ({})
 ____exports.Direction.HORIZONTAL = 0
 ____exports.Direction[____exports.Direction.HORIZONTAL] = "HORIZONTAL"
@@ -24,10 +22,7 @@ ____exports.ShotState[____exports.ShotState.KILL] = "KILL"
 ____exports.ShotState.ERROR = 3
 ____exports.ShotState[____exports.ShotState.ERROR] = "ERROR"
 function ____exports.Player()
-    local setup, is_can_place_ship, create_ship, miss_around_ship, get_ship, has_ship_part, generate_uid, uid_counter, field, ships_uids, ships_bb, ships_lifes, index_to_ship_uid
-    function setup(fieldWidth, fieldHiegth)
-        field = Field(fieldWidth, fieldHiegth)
-    end
+    local is_can_place_ship, create_ship, generate_uid, uid_counter, field, ships_uids, ships_bb, ships_lifes, index_to_ship_uid
     function is_can_place_ship(start, ____end)
         if not field.in_boundaries(start.x, start.y) or not field.in_boundaries(____end.x, ____end.y) then
             return false
@@ -89,48 +84,20 @@ function ____exports.Player()
         ships_bb[ship_uid] = {start = start, ["end"] = ____end}
         return ship_uid
     end
-    function miss_around_ship(ship)
-        local ____ships_bb_ship_0 = ships_bb[ship]
-        local start = ____ships_bb_ship_0.start
-        local ____end = ____ships_bb_ship_0["end"]
-        local misses = {}
-        do
-            local y = start.y - 1
-            while y <= ____end.y + 1 do
-                do
-                    local x = start.x - 1
-                    while x <= ____end.x + 1 do
-                        if field.in_boundaries(x, y) then
-                            if field.get_value(x, y) ~= CellState.HIT then
-                                field.set_value(x, y, CellState.MISS)
-                                misses[#misses + 1] = {x = x, y = y}
-                            end
-                        end
-                        x = x + 1
-                    end
-                end
-                y = y + 1
-            end
-        end
-        return misses
-    end
-    function get_ship(x, y)
-        return index_to_ship_uid[field.get_index(x, y)]
-    end
-    function has_ship_part(x, y)
-        return index_to_ship_uid[field.get_index(x, y)] ~= nil
-    end
     function generate_uid()
         local ____uid_counter_1 = uid_counter
         uid_counter = ____uid_counter_1 + 1
         return ____uid_counter_1
     end
-    setup(Config.field_heigth, Config.field_width)
     uid_counter = 0
     ships_uids = {}
     ships_bb = {}
     ships_lifes = {}
     index_to_ship_uid = {}
+    local function setup(fieldWidth, fieldHiegth)
+        field = Field(fieldWidth, fieldHiegth)
+        log(field.get_value(0, 0))
+    end
     local function auto_place_ships(ships)
         local dir_count = 2
         do
@@ -175,25 +142,30 @@ function ____exports.Player()
             end
         end
     end
-    local function shot(x, y)
-        local cell_state = field.get_value(x, y)
-        if not has_ship_part(x, y) then
-            field.set_value(x, y, CellState.MISS)
-            return {state = ____exports.ShotState.MISS}
+    local function miss_around_ship(ship)
+        local ____ships_bb_ship_0 = ships_bb[ship]
+        local start = ____ships_bb_ship_0.start
+        local ____end = ____ships_bb_ship_0["end"]
+        local misses = {}
+        do
+            local y = start.y - 1
+            while y <= ____end.y + 1 do
+                do
+                    local x = start.x - 1
+                    while x <= ____end.x + 1 do
+                        if field.in_boundaries(x, y) then
+                            if field.get_value(x, y) ~= CellState.HIT then
+                                field.set_value(x, y, CellState.MISS)
+                                misses[#misses + 1] = {x = x, y = y}
+                            end
+                        end
+                        x = x + 1
+                    end
+                end
+                y = y + 1
+            end
         end
-        if cell_state == CellState.HIT or cell_state == CellState.MISS then
-            return {state = ____exports.ShotState.ERROR}
-        end
-        field.set_value(x, y, CellState.HIT)
-        local ship = get_ship(x, y)
-        ships_lifes[ship] = ships_lifes[ship] - 1
-        if ships_lifes[ship] == 0 then
-            return {
-                state = ____exports.ShotState.KILL,
-                data = miss_around_ship(ship)
-            }
-        end
-        return {state = ____exports.ShotState.HIT}
+        return misses
     end
     local function is_win()
         return __TS__ArrayEvery(
@@ -201,15 +173,25 @@ function ____exports.Player()
             function(____, ship) return ships_lifes[ship] == 0 end
         )
     end
+    local function get_ship(x, y)
+        return index_to_ship_uid[field.get_index(x, y)]
+    end
+    local function has_ship_part(x, y)
+        return index_to_ship_uid[field.get_index(x, y)] ~= nil
+    end
     local function get_field()
         return field
     end
     return {
         setup = setup,
         auto_place_ships = auto_place_ships,
-        shot = shot,
         get_field = get_field,
-        is_win = is_win
+        is_win = is_win,
+        has_ship_part = has_ship_part,
+        get_ship = get_ship,
+        miss_around_ship = miss_around_ship,
+        ships_lifes = ships_lifes,
+        ships_uids = ships_uids
     }
 end
 return ____exports

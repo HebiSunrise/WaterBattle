@@ -5,7 +5,7 @@ local ____battle = require("game.battle")
 local Battle = ____battle.Battle
 local ShotState = ____battle.ShotState
 function ____exports.Game()
-    local render_field, in_cell, on_click, render_shot, render_killed, cell_size, gm, battle, start_pos_bfield_x, start_pos_bfield_y
+    local render_field, in_cell, on_click, render_shot, render_killed, cell_size, gm, battle, start_pos_efield_x, start_pos_efield_y
     function render_field(start_pos_x, start_pos_y)
         local field = battle:get_field()
         do
@@ -36,7 +36,7 @@ function ____exports.Game()
     function on_click(pos)
         local tmp = Camera.window_to_world(pos.x, pos.y)
         log(tmp.x, " ", tmp.y)
-        local cell_cord = in_cell(start_pos_bfield_x, start_pos_bfield_y, tmp)
+        local cell_cord = in_cell(start_pos_efield_x, start_pos_efield_y, tmp)
         log(cell_cord)
         if not cell_cord then
             return
@@ -65,7 +65,7 @@ function ____exports.Game()
     function render_shot(x, y, state)
         gm.make_go(
             state,
-            vmath.vector3(x * cell_size + start_pos_bfield_x, y * -cell_size + start_pos_bfield_y, 1)
+            vmath.vector3(x * cell_size + start_pos_efield_x, y * -cell_size + start_pos_efield_y, 1)
         )
     end
     function render_killed(x, y, data)
@@ -87,12 +87,12 @@ function ____exports.Game()
     battle = Battle()
     local start_pos_ufield_x = 50
     local start_pos_ufield_y = -50
-    start_pos_bfield_x = 440
-    start_pos_bfield_y = -50
+    start_pos_efield_x = 440
+    start_pos_efield_y = -50
     local function init()
         EventBus.on("MSG_ON_UP", on_click)
         render_field(start_pos_ufield_x, start_pos_ufield_y)
-        render_field(start_pos_bfield_x, start_pos_bfield_y)
+        render_field(start_pos_efield_x, start_pos_efield_y)
     end
     local function on_message(message_id, message)
         gm.do_message(message_id, message)
