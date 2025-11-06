@@ -39,7 +39,7 @@ function ____exports.Game()
         local idx = battle.get_current_turn_player_index()
         repeat
             local ____switch9 = idx
-            local step, state
+            local bot_shot_info
             local ____cond9 = ____switch9 == PLAYER_INDEX
             if ____cond9 then
                 is_block_input = false
@@ -47,19 +47,11 @@ function ____exports.Game()
             end
             ____cond9 = ____cond9 or ____switch9 == BOT_INDEX
             if ____cond9 then
-                step = bot.step()
-                state = battle.shot(step.x, step.y)
+                bot_shot_info = bot.shot()
                 timer.delay(
-                    0.5,
+                    1,
                     false,
-                    function() return shot_animate(
-                        state,
-                        step.x,
-                        step.y,
-                        Config.start_pos_ufield_x,
-                        Config.start_pos_ufield_y,
-                        on_shot_end
-                    ) end
+                    function() return shot_animate(bot_shot_info, Config.start_pos_ufield_x, Config.start_pos_ufield_y, on_shot_end) end
                 )
                 break
             end
@@ -74,14 +66,16 @@ function ____exports.Game()
     function on_win()
         log("Победил игрок " .. tostring(battle.get_current_turn_player_index()))
     end
-    function shot_animate(info, pos_x, pos_y, st_pos_fld_x, st_pos_fld_y, on_end)
+    function shot_animate(info, st_pos_fld_x, st_pos_fld_y, on_end)
+        local x = info.shot_pos.x
+        local y = info.shot_pos.y
         repeat
             local ____switch15 = info.state
             local ____cond15 = ____switch15 == ShotState.HIT
             if ____cond15 then
                 render_shot(
-                    pos_x,
-                    pos_y,
+                    x,
+                    y,
                     "hit",
                     st_pos_fld_x,
                     st_pos_fld_y
@@ -91,8 +85,8 @@ function ____exports.Game()
             ____cond15 = ____cond15 or ____switch15 == ShotState.MISS
             if ____cond15 then
                 render_shot(
-                    pos_x,
-                    pos_y,
+                    x,
+                    y,
                     "miss",
                     st_pos_fld_x,
                     st_pos_fld_y
@@ -102,13 +96,17 @@ function ____exports.Game()
             ____cond15 = ____cond15 or ____switch15 == ShotState.KILL
             if ____cond15 then
                 render_killed(
-                    pos_x,
-                    pos_y,
+                    x,
+                    y,
                     info.data,
                     st_pos_fld_x,
                     st_pos_fld_y
                 )
                 break
+            end
+            ____cond15 = ____cond15 or ____switch15 == ShotState.ERROR
+            if ____cond15 then
+                return
             end
         until true
         on_end()
@@ -119,15 +117,8 @@ function ____exports.Game()
         if not cell_cord then
             return
         end
-        local state = battle.shot(cell_cord.x, cell_cord.y)
-        shot_animate(
-            state,
-            cell_cord.x,
-            cell_cord.y,
-            Config.start_pos_efield_x,
-            Config.start_pos_efield_y,
-            on_shot_end
-        )
+        local info = battle.shot(cell_cord.x, cell_cord.y)
+        shot_animate(info, Config.start_pos_efield_x, Config.start_pos_efield_y, on_shot_end)
     end
     function in_cell(start_pos_x, start_pos_y, pos)
         local x = math.floor((pos.x - (start_pos_x - cell_size * 0.5)) / cell_size)
@@ -171,7 +162,7 @@ function ____exports.Game()
     PLAYER_INDEX = 0
     BOT_INDEX = 1
     battle = Battle()
-    bot = Bot()
+    bot = Bot(battle, BOT_INDEX)
     is_block_input = true
     local function init()
         EventBus.on("MSG_ON_UP", on_click)
@@ -182,6 +173,7 @@ function ____exports.Game()
             end_turn_callback = on_turn_end,
             win_callback = on_win
         })
+        bot.setup()
         render_player(
             Config.start_pos_ufield_x,
             Config.start_pos_ufield_y,

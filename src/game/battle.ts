@@ -1,4 +1,4 @@
-import { generate_random_integer } from "../utils/utils";
+
 import { CellState, Field } from "./field";
 import { Player } from "./player";
 
@@ -16,6 +16,7 @@ export enum ShotState {
 
 export interface ShotInfo {
     state: ShotState;
+    shot_pos: { x: number, y: number };
     data?: { x: number, y: number }[];
 }
 
@@ -24,7 +25,7 @@ interface ShipBB {
     end: { x: number, y: number };
 }
 
-interface BattleConfig {
+export interface BattleConfig {
     width: number;
     height: number;
     start_turn_callback: VoidCallback;
@@ -78,15 +79,17 @@ export function Battle() {
 
     function start_turn() {
         current_turn_player_shot_state = ShotState.ERROR;
-        turn_timer = timer.delay(10, false, end_turn);
+        turn_timer = timer.delay(5, false, end_turn);
         start_turn_cb();
     }
 
     function end_turn() {
         timer.cancel(turn_timer);
         end_turn_cb();
-        if (is_win())
+        if (is_win()) {
+            win_cb();
             return;
+        }
         if (is_need_switch_turn())
             switch_turn();
 
@@ -109,8 +112,8 @@ export function Battle() {
         return players[current_turn_player_index];
     }
 
-    function get_opponent() {
-        return players[1 - current_turn_player_index];
+    function get_opponent(self_idx: number) {
+        return players[1 - self_idx];
     }
 
     function get_players() {
@@ -122,20 +125,20 @@ export function Battle() {
     }
 
     function shot(x: number, y: number): ShotInfo {
-        const player = get_current_player();
+        const player = get_opponent(current_turn_player_index);
         const field = player.get_field();
         const cell_state = field.get_value(x, y);
+
+        if (cell_state == CellState.HIT || cell_state == CellState.MISS) {
+            current_turn_player_shot_state = ShotState.ERROR;
+            return { state: ShotState.ERROR, shot_pos: { x, y } };
+        }
 
         if (!player.has_ship_part(x, y)) {
 
             field.set_value(x, y, CellState.MISS);
             current_turn_player_shot_state = ShotState.MISS;
-            return { state: ShotState.MISS };
-        }
-
-        if (cell_state == CellState.HIT || cell_state == CellState.MISS) {
-            current_turn_player_shot_state = ShotState.ERROR;
-            return { state: ShotState.ERROR };
+            return { state: ShotState.MISS, shot_pos: { x, y } };
         }
 
         field.set_value(x, y, CellState.HIT);
@@ -146,16 +149,15 @@ export function Battle() {
 
         if (player.ships_lifes[ship] == 0) {
             current_turn_player_shot_state = ShotState.KILL;
-            return { state: ShotState.KILL, data: player.miss_around_ship(ship) };
+            return { state: ShotState.KILL, shot_pos: { x, y }, data: player.miss_around_ship(ship) };
         }
 
-        return { state: ShotState.HIT };
+        return { state: ShotState.HIT, shot_pos: { x, y } };
     }
 
     function is_win() {
-        const player = get_player(get_current_turn_player_index());
+        const player = get_opponent(get_current_turn_player_index());
         if (player.ships_uids.every(ship => player.ships_lifes[ship] == 0)) {
-            win_cb();
             return true;
         }
         return false;

@@ -14,11 +14,6 @@ export enum ShotState {
     ERROR
 }
 
-export interface ShotInfo {
-    state: ShotState;
-    data?: { x: number, y: number }[];
-}
-
 interface ShipBB {
     start: { x: number, y: number };
     end: { x: number, y: number };
@@ -36,7 +31,6 @@ export function Player() {
 
     function setup(fieldWidth: number, fieldHiegth: number) {
         field = Field(fieldWidth, fieldHiegth);
-        log(field.get_value(0, 0));
     }
 
     function auto_place_ships(ships: { length: number, count: number }[]) {
@@ -70,7 +64,7 @@ export function Player() {
                     else {
                         is_search = false;
                         create_ship(start.x, start.y, ships[i].length, direction);
-                        log(`start: x:${start.x}, y:${start.y} end: x:${end.x}, y:${end.y}, dir:${direction}, leng:${ships[i].length}`);
+                        //log(`start: x:${start.x}, y:${start.y} end: x:${end.x}, y:${end.y}, dir:${direction}, leng:${ships[i].length}`);
                     }
                 }
             }

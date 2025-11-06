@@ -14,18 +14,12 @@
 import * as flow from 'ludobits.m.flow';
 import { GoManager } from '../modules/GoManager';
 import { generate_random_integer } from "../utils/utils";
-import { Battle, ShotState } from './battle';
+import { Battle, ShotInfo, ShotState } from './battle';
 import { Messages } from '../modules/modules_const';
 import { Config } from './config';
 import { Field } from './field';
-import { Player, ShotInfo } from './player';
+import { Player } from './player';
 import { Bot } from './bot';
-
-interface CellData {
-    x: number;
-    y: number;
-    _hash: hash;
-}
 
 export function Game() {
     const cell_size = 34;
@@ -33,7 +27,7 @@ export function Game() {
     const PLAYER_INDEX = 0;
     const BOT_INDEX = 1;
     const battle = Battle();
-    const bot = Bot();
+    const bot = Bot(battle, BOT_INDEX);
 
     let is_block_input = true;
 
@@ -48,6 +42,7 @@ export function Game() {
             win_callback: on_win
         });
 
+        bot.setup();
         render_player(Config.start_pos_ufield_x, Config.start_pos_ufield_y, battle.get_player(PLAYER_INDEX));
         render_player(Config.start_pos_efield_x, Config.start_pos_efield_y, battle.get_player(BOT_INDEX));
         battle.start();
@@ -74,9 +69,8 @@ export function Game() {
                 break;
             case BOT_INDEX:
                 // NOTE: если бот, то вызывать его логику
-                const step = bot.step();
-                const state = battle.shot(step.x, step.y);
-                timer.delay(0.5, false, () => shot_animate(state, step.x, step.y, Config.start_pos_ufield_x, Config.start_pos_ufield_y, on_shot_end));
+                const bot_shot_info = bot.shot();
+                timer.delay(1, false, () => shot_animate(bot_shot_info, Config.start_pos_ufield_x, Config.start_pos_ufield_y, on_shot_end));
                 break;
         }
     }
@@ -95,17 +89,21 @@ export function Game() {
     }
 
 
-    function shot_animate(info: ShotInfo, pos_x: number, pos_y: number, st_pos_fld_x: number, st_pos_fld_y: number, on_end: () => void) {
+    function shot_animate(info: ShotInfo, st_pos_fld_x: number, st_pos_fld_y: number, on_end: () => void) {
+        const x = info.shot_pos.x;
+        const y = info.shot_pos.y;
         switch (info.state) {
             case ShotState.HIT:
-                render_shot(pos_x, pos_y, "hit", st_pos_fld_x, st_pos_fld_y);
+                render_shot(x, y, "hit", st_pos_fld_x, st_pos_fld_y);
                 break;
             case ShotState.MISS:
-                render_shot(pos_x, pos_y, "miss", st_pos_fld_x, st_pos_fld_y);
+                render_shot(x, y, "miss", st_pos_fld_x, st_pos_fld_y);
                 break;
             case ShotState.KILL:
-                render_killed(pos_x, pos_y, info.data!, st_pos_fld_x, st_pos_fld_y);
+                render_killed(x, y, info.data!, st_pos_fld_x, st_pos_fld_y);
                 break;
+            case ShotState.ERROR:
+                return;
         }
 
         on_end();
@@ -114,14 +112,12 @@ export function Game() {
     // NOTE: когда ход пользователя, мы слушаем инпут и стреляем
     function on_click(pos: { x: number, y: number }) {
         const tmp = Camera.window_to_world(pos.x, pos.y);
-
-
         const cell_cord = in_cell(Config.start_pos_efield_x, Config.start_pos_efield_y, tmp);
         if (!cell_cord) {
             return;
         }
-        const state = battle.shot(cell_cord.x, cell_cord.y);
-        shot_animate(state, cell_cord.x, cell_cord.y, Config.start_pos_efield_x, Config.start_pos_efield_y, on_shot_end);
+        const info = battle.shot(cell_cord.x, cell_cord.y);
+        shot_animate(info, Config.start_pos_efield_x, Config.start_pos_efield_y, on_shot_end);
     }
 
     function in_cell(start_pos_x: number, start_pos_y: number, pos: vmath.vector3) {

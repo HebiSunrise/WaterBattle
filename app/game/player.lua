@@ -96,7 +96,6 @@ function ____exports.Player()
     index_to_ship_uid = {}
     local function setup(fieldWidth, fieldHiegth)
         field = Field(fieldWidth, fieldHiegth)
-        log(field.get_value(0, 0))
     end
     local function auto_place_ships(ships)
         local dir_count = 2
@@ -132,7 +131,6 @@ function ____exports.Player()
                             else
                                 is_search = false
                                 create_ship(start.x, start.y, ships[i + 1].length, direction)
-                                log((((((((((("start: x:" .. tostring(start.x)) .. ", y:") .. tostring(start.y)) .. " end: x:") .. tostring(____end.x)) .. ", y:") .. tostring(____end.y)) .. ", dir:") .. tostring(direction)) .. ", leng:") .. tostring(ships[i + 1].length))
                             end
                         end
                         j = j + 1

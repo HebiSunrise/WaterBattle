@@ -21,16 +21,17 @@ ____exports.ShotState[____exports.ShotState.KILL] = "KILL"
 ____exports.ShotState.ERROR = 3
 ____exports.ShotState[____exports.ShotState.ERROR] = "ERROR"
 function ____exports.Battle()
-    local start_turn, end_turn, is_need_switch_turn, switch_turn, get_current_turn_player_index, get_player, is_win, players, current_turn_player_index, current_turn_player_shot_state, start_turn_cb, end_turn_cb, win_cb, turn_timer
+    local start_turn, end_turn, is_need_switch_turn, switch_turn, get_current_turn_player_index, get_opponent, is_win, players, current_turn_player_index, current_turn_player_shot_state, start_turn_cb, end_turn_cb, win_cb, turn_timer
     function start_turn()
         current_turn_player_shot_state = ____exports.ShotState.ERROR
-        turn_timer = timer.delay(10, false, end_turn)
+        turn_timer = timer.delay(5, false, end_turn)
         start_turn_cb()
     end
     function end_turn()
         timer.cancel(turn_timer)
         end_turn_cb()
         if is_win() then
+            win_cb()
             return
         end
         if is_need_switch_turn() then
@@ -47,16 +48,15 @@ function ____exports.Battle()
     function get_current_turn_player_index()
         return current_turn_player_index
     end
-    function get_player(index)
-        return players[index + 1]
+    function get_opponent(self_idx)
+        return players[1 - self_idx + 1]
     end
     function is_win()
-        local player = get_player(get_current_turn_player_index())
+        local player = get_opponent(get_current_turn_player_index())
         if __TS__ArrayEvery(
             player.ships_uids,
             function(____, ship) return player.ships_lifes[ship] == 0 end
         ) then
-            win_cb()
             return true
         end
         return false
@@ -81,24 +81,24 @@ function ____exports.Battle()
     local function get_current_player()
         return players[current_turn_player_index + 1]
     end
-    local function get_opponent()
-        return players[1 - current_turn_player_index + 1]
-    end
     local function get_players()
         return players
     end
+    local function get_player(index)
+        return players[index + 1]
+    end
     local function shot(x, y)
-        local player = get_current_player()
+        local player = get_opponent(current_turn_player_index)
         local field = player.get_field()
         local cell_state = field.get_value(x, y)
+        if cell_state == CellState.HIT or cell_state == CellState.MISS then
+            current_turn_player_shot_state = ____exports.ShotState.ERROR
+            return {state = ____exports.ShotState.ERROR, shot_pos = {x = x, y = y}}
+        end
         if not player.has_ship_part(x, y) then
             field.set_value(x, y, CellState.MISS)
             current_turn_player_shot_state = ____exports.ShotState.MISS
-            return {state = ____exports.ShotState.MISS}
-        end
-        if cell_state == CellState.HIT or cell_state == CellState.MISS then
-            current_turn_player_shot_state = ____exports.ShotState.ERROR
-            return {state = ____exports.ShotState.ERROR}
+            return {state = ____exports.ShotState.MISS, shot_pos = {x = x, y = y}}
         end
         field.set_value(x, y, CellState.HIT)
         current_turn_player_shot_state = ____exports.ShotState.HIT
@@ -109,10 +109,11 @@ function ____exports.Battle()
             current_turn_player_shot_state = ____exports.ShotState.KILL
             return {
                 state = ____exports.ShotState.KILL,
+                shot_pos = {x = x, y = y},
                 data = player.miss_around_ship(ship)
             }
         end
-        return {state = ____exports.ShotState.HIT}
+        return {state = ____exports.ShotState.HIT, shot_pos = {x = x, y = y}}
     end
     return {
         setup = setup,
