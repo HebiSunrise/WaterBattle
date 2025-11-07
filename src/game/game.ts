@@ -14,7 +14,7 @@
 import * as flow from 'ludobits.m.flow';
 import { GoManager } from '../modules/GoManager';
 import { generate_random_integer } from "../utils/utils";
-import { Battle, ShotInfo, ShotState } from './battle';
+import { Battle, BattleState, ShotInfo, ShotState } from './battle';
 import { Messages } from '../modules/modules_const';
 import { Config } from './config';
 import { Field } from './field';
@@ -43,10 +43,14 @@ export function Game() {
             win_callback: on_win
         });
 
+        // battle.load_state(GameStorage.get("battle_state") as BattleState);
         bot.setup();
         render_player(Config.start_pos_ufield_x, Config.start_pos_ufield_y, battle.get_player(PLAYER_INDEX));
         render_player(Config.start_pos_efield_x, Config.start_pos_efield_y, battle.get_player(BOT_INDEX));
         battle.start();
+
+        // log(battle.get_player(0).get_field().debug());
+        // log(battle.get_player(1).get_field().debug());
     }
 
     function render_player(st_x: number, st_y: number, player: Player) {
@@ -62,6 +66,7 @@ export function Game() {
     }
 
     function on_turn_start() {
+        // GameStorage.set("battle_state", battle.save_state());
         const idx = battle.get_current_turn_player_index();
         switch (idx) {
             case PLAYER_INDEX:

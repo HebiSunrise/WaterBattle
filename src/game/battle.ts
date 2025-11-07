@@ -1,6 +1,6 @@
 
-import { CellState, Field } from "./field";
-import { Player } from "./player";
+import { CellState } from "./field";
+import { Player, PlayerState } from "./player";
 
 export enum Direction {
     HORIZONTAL,
@@ -20,17 +20,17 @@ export interface ShotInfo {
     data?: { x: number, y: number }[];
 }
 
-interface ShipBB {
-    start: { x: number, y: number };
-    end: { x: number, y: number };
-}
-
 export interface BattleConfig {
     width: number;
     height: number;
     start_turn_callback: VoidCallback;
     end_turn_callback: VoidCallback;
     win_callback: VoidCallback;
+}
+
+export interface BattleState {
+    current_turn_player_index: number;
+    players: PlayerState[];
 }
 
 type VoidCallback = () => void;
@@ -157,10 +157,28 @@ export function Battle() {
 
     function is_win() {
         const player = get_opponent(get_current_turn_player_index());
-        if (player.ships_uids.every(ship => player.ships_lifes[ship] == 0)) {
+        if (player.is_win()) {
             return true;
         }
         return false;
+    }
+
+    function load_state(state: BattleState) {
+        current_turn_player_index = state.current_turn_player_index;
+        for (const [index, player] of state.players.entries()) {
+            players[index].load_state(player);
+        }
+    }
+
+    function save_state(): BattleState {
+        const result: BattleState = {
+            current_turn_player_index: current_turn_player_index,
+            players: []
+        };
+        for (const player of players) {
+            result.players.push(player.save_state());
+        }
+        return result;
     }
 
     return {
@@ -172,7 +190,9 @@ export function Battle() {
         get_current_player,
         get_opponent,
         get_players,
-        get_player
+        get_player,
+        load_state,
+        save_state
     };
 }
 

@@ -1,3 +1,5 @@
+import { copy } from "../utils/utils";
+
 export enum CellState {
     EMPTY,
     HIT,
@@ -33,6 +35,18 @@ export function Field(width: number, height: number) {
         return y * width + x;
     }
 
+    function load_state(state: CellState[][]) {
+        for (let y = 0; y < state.length; y++) {
+            for (let x = 0; x < state[y].length; x++) {
+                set_value(x, y, state[y][x]);
+            }
+        }
+    }
+
+    function save_state(): CellState[][] {
+        return copy(values);
+    }
+
     function debug() {
         for (let y = 0; y < height; y++) {
             let output = '';
@@ -45,7 +59,17 @@ export function Field(width: number, height: number) {
 
     init();
 
-    return { set_value, get_value, in_boundaries, get_index, debug, width: width, height: height };
+    return {
+        set_value,
+        get_value,
+        in_boundaries,
+        get_index,
+        debug,
+        load_state,
+        save_state,
+        width: width,
+        height: height
+    };
 }
 
 export type Field = ReturnType<typeof Field>;

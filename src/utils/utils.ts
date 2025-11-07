@@ -136,3 +136,7 @@ export function set_position_xy(item: hash, x: number, y: number) {
 export function generate_random_integer(max: number): number {
     return math.floor(math.random() * max);
 }
+
+export function copy<T>(value: T) {
+    return json.decode(json.encode(value)) as T;
+}

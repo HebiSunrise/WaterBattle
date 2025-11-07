@@ -1,6 +1,7 @@
 local ____lualib = require("lualib_bundle")
 local __TS__ArrayPush = ____lualib.__TS__ArrayPush
-local __TS__ArrayEvery = ____lualib.__TS__ArrayEvery
+local __TS__ArrayEntries = ____lualib.__TS__ArrayEntries
+local __TS__Iterator = ____lualib.__TS__Iterator
 local ____exports = {}
 local ____field = require("game.field")
 local CellState = ____field.CellState
@@ -53,10 +54,7 @@ function ____exports.Battle()
     end
     function is_win()
         local player = get_opponent(get_current_turn_player_index())
-        if __TS__ArrayEvery(
-            player.ships_uids,
-            function(____, ship) return player.ships_lifes[ship] == 0 end
-        ) then
+        if player.is_win() then
             return true
         end
         return false
@@ -115,6 +113,22 @@ function ____exports.Battle()
         end
         return {state = ____exports.ShotState.HIT, shot_pos = {x = x, y = y}}
     end
+    local function load_state(state)
+        current_turn_player_index = state.current_turn_player_index
+        for ____, ____value in __TS__Iterator(__TS__ArrayEntries(state.players)) do
+            local index = ____value[1]
+            local player = ____value[2]
+            players[index + 1].load_state(player)
+        end
+    end
+    local function save_state()
+        local result = {current_turn_player_index = current_turn_player_index, players = {}}
+        for ____, player in ipairs(players) do
+            local ____result_players_2 = result.players
+            ____result_players_2[#____result_players_2 + 1] = player.save_state()
+        end
+        return result
+    end
     return {
         setup = setup,
         start = start,
@@ -124,7 +138,9 @@ function ____exports.Battle()
         get_current_player = get_current_player,
         get_opponent = get_opponent,
         get_players = get_players,
-        get_player = get_player
+        get_player = get_player,
+        load_state = load_state,
+        save_state = save_state
     }
 end
 return ____exports

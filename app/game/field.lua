@@ -1,4 +1,6 @@
 local ____exports = {}
+local ____utils = require("utils.utils")
+local copy = ____utils.copy
 ____exports.CellState = CellState or ({})
 ____exports.CellState.EMPTY = 0
 ____exports.CellState[____exports.CellState.EMPTY] = "EMPTY"
@@ -38,6 +40,24 @@ function ____exports.Field(width, height)
     local function get_index(x, y)
         return y * width + x
     end
+    local function load_state(state)
+        do
+            local y = 0
+            while y < #state do
+                do
+                    local x = 0
+                    while x < #state[y + 1] do
+                        set_value(x, y, state[y + 1][x + 1])
+                        x = x + 1
+                    end
+                end
+                y = y + 1
+            end
+        end
+    end
+    local function save_state()
+        return copy(values)
+    end
     local function ____debug()
         do
             local y = 0
@@ -62,6 +82,8 @@ function ____exports.Field(width, height)
         in_boundaries = in_boundaries,
         get_index = get_index,
         debug = ____debug,
+        load_state = load_state,
+        save_state = save_state,
         width = width,
         height = height
     }

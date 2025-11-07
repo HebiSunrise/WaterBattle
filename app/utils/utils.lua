@@ -176,4 +176,7 @@ end
 function ____exports.generate_random_integer(max)
     return math.floor(math.random() * max)
 end
+function ____exports.copy(value)
+    return json.decode(json.encode(value))
+end
 return ____exports

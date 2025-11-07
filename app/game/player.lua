@@ -1,8 +1,10 @@
 local ____lualib = require("lualib_bundle")
 local __TS__ObjectAssign = ____lualib.__TS__ObjectAssign
 local __TS__ArrayEvery = ____lualib.__TS__ArrayEvery
+local __TS__ObjectEntries = ____lualib.__TS__ObjectEntries
 local ____exports = {}
 local ____utils = require("utils.utils")
+local copy = ____utils.copy
 local generate_random_integer = ____utils.generate_random_integer
 local ____field = require("game.field")
 local CellState = ____field.CellState
@@ -180,6 +182,38 @@ function ____exports.Player()
     local function get_field()
         return field
     end
+    local function load_state(state)
+        field.load_state(state.field)
+        ships_uids = state.ships_uids
+        ships_bb = state.ships_bb
+        ships_lifes = state.ships_lifes
+        index_to_ship_uid = state.index_to_ship_uid
+    end
+    local function save_state()
+        local result = {
+            field = field.save_state(),
+            ships_uids = copy(ships_uids),
+            ships_bb = {},
+            ships_lifes = {},
+            index_to_ship_uid = {}
+        }
+        for ____, ____value in ipairs(__TS__ObjectEntries(ships_bb)) do
+            local key = ____value[1]
+            local value = ____value[2]
+            result.ships_bb[key] = value
+        end
+        for ____, ____value in ipairs(__TS__ObjectEntries(ships_lifes)) do
+            local key = ____value[1]
+            local value = ____value[2]
+            result.ships_lifes[key] = value
+        end
+        for ____, ____value in ipairs(__TS__ObjectEntries(index_to_ship_uid)) do
+            local key = ____value[1]
+            local value = ____value[2]
+            result.index_to_ship_uid[key] = value
+        end
+        return result
+    end
     return {
         setup = setup,
         create_ship = create_ship,
@@ -189,6 +223,8 @@ function ____exports.Player()
         has_ship_part = has_ship_part,
         get_ship = get_ship,
         miss_around_ship = miss_around_ship,
+        load_state = load_state,
+        save_state = save_state,
         ships_lifes = ships_lifes,
         ships_uids = ships_uids
     }

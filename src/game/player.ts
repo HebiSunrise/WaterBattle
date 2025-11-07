@@ -1,4 +1,4 @@
-import { generate_random_integer } from "../utils/utils";
+import { copy, generate_random_integer } from "../utils/utils";
 import { CellState, Field } from "./field";
 import { Config } from "./config";
 
@@ -14,20 +14,29 @@ export enum ShotState {
     ERROR
 }
 
+export interface PlayerState {
+    field: CellState[][];
+    ships_uids: number[];
+    ships_bb: { [ship_uid: string]: ShipBB };
+    ships_lifes: { [ship_uid: string]: number };
+    index_to_ship_uid: { [index: string]: number };
+}
+
 interface ShipBB {
     start: { x: number, y: number };
     end: { x: number, y: number };
 }
+
 
 export function Player() {
 
     let uid_counter = 0;
     let field: Field;
 
-    const ships_uids: number[] = [];
-    const ships_bb: { [ship_uid: number]: ShipBB } = {};
-    const ships_lifes: { [ship_uid: number]: number } = {};
-    const index_to_ship_uid: { [index: number]: number } = {};
+    let ships_uids: number[] = [];
+    let ships_bb: { [ship_uid: number]: ShipBB } = {};
+    let ships_lifes: { [ship_uid: number]: number } = {};
+    let index_to_ship_uid: { [index: number]: number } = {};
 
     function setup(fieldWidth: number, fieldHiegth: number) {
         field = Field(fieldWidth, fieldHiegth);
@@ -152,6 +161,35 @@ export function Player() {
         return field;
     }
 
+    function load_state(state: PlayerState) {
+        field.load_state(state.field);
+        ships_uids = state.ships_uids;
+        ships_bb = state.ships_bb;
+        ships_lifes = state.ships_lifes;
+        index_to_ship_uid = state.index_to_ship_uid;
+    }
+
+    function save_state(): PlayerState {
+        const result: PlayerState = {
+            field: field.save_state(),
+            ships_uids: copy(ships_uids),
+            ships_bb: {},
+            ships_lifes: {},
+            index_to_ship_uid: {}
+        };
+        for (const [key, value] of Object.entries(ships_bb)) {
+            result.ships_bb[key] = value;
+        }
+        for (const [key, value] of Object.entries(ships_lifes)) {
+            result.ships_lifes[key] = value;
+        }
+        for (const [key, value] of Object.entries(index_to_ship_uid)) {
+            result.index_to_ship_uid[key] = value;
+        }
+
+        return result;
+    }
+
     return {
         setup,
         create_ship,
@@ -161,6 +199,8 @@ export function Player() {
         has_ship_part,
         get_ship,
         miss_around_ship,
+        load_state,
+        save_state,
         ships_lifes: ships_lifes,
         ships_uids: ships_uids
     };
