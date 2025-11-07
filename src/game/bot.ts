@@ -151,14 +151,16 @@ export function Bot(battle: Battle, player_idx: number) {
     }
 
     function down_search(field: Field) {
-        if (field.get_value(last_hit.x, last_hit.y - 1) != CellState.MISS) {
+        const check_pos = field.in_boundaries(last_hit.x, last_hit.y - 1);
+        if (check_pos && field.get_value(last_hit.x, last_hit.y - 1) != CellState.MISS) {
             return last_hit.y - 1;
         }
         return first_hit.y + 1;
     }
 
     function up_search(field: Field) {
-        if (field.get_value(last_hit.x, last_hit.y + 1) != CellState.MISS) {
+        const check_pos = field.in_boundaries(last_hit.x, last_hit.y + 1);
+        if (check_pos && field.get_value(last_hit.x, last_hit.y + 1) != CellState.MISS) {
             return last_hit.y + 1;
         }
         return first_hit.y - 1;
@@ -179,15 +181,16 @@ export function Bot(battle: Battle, player_idx: number) {
     }
 
     function left_search(field: Field) {
-        if (field.get_value(last_hit.x - 1, last_hit.y) != CellState.MISS) {
+        const check_pos = field.in_boundaries(last_hit.x - 1, last_hit.y);
+        if (check_pos && field.get_value(last_hit.x - 1, last_hit.y) != CellState.MISS) {
             return last_hit.x - 1;
         }
         return first_hit.x + 1;
-
     }
 
     function right_search(field: Field) {
-        if (field.get_value(last_hit.x + 1, last_hit.y) != CellState.MISS) {
+        const check_pos = field.in_boundaries(last_hit.x + 1, last_hit.y);
+        if (check_pos && field.get_value(last_hit.x + 1, last_hit.y) != CellState.MISS) {
             return last_hit.x + 1;
         }
         return first_hit.x - 1;

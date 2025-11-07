@@ -103,13 +103,15 @@ function ____exports.Bot(battle, player_idx)
         return pos
     end
     function down_search(field)
-        if field.get_value(last_hit.x, last_hit.y - 1) ~= CellState.MISS then
+        local check_pos = field.in_boundaries(last_hit.x, last_hit.y - 1)
+        if check_pos and field.get_value(last_hit.x, last_hit.y - 1) ~= CellState.MISS then
             return last_hit.y - 1
         end
         return first_hit.y + 1
     end
     function up_search(field)
-        if field.get_value(last_hit.x, last_hit.y + 1) ~= CellState.MISS then
+        local check_pos = field.in_boundaries(last_hit.x, last_hit.y + 1)
+        if check_pos and field.get_value(last_hit.x, last_hit.y + 1) ~= CellState.MISS then
             return last_hit.y + 1
         end
         return first_hit.y - 1
@@ -128,13 +130,15 @@ function ____exports.Bot(battle, player_idx)
         return pos
     end
     function left_search(field)
-        if field.get_value(last_hit.x - 1, last_hit.y) ~= CellState.MISS then
+        local check_pos = field.in_boundaries(last_hit.x - 1, last_hit.y)
+        if check_pos and field.get_value(last_hit.x - 1, last_hit.y) ~= CellState.MISS then
             return last_hit.x - 1
         end
         return first_hit.x + 1
     end
     function right_search(field)
-        if field.get_value(last_hit.x + 1, last_hit.y) ~= CellState.MISS then
+        local check_pos = field.in_boundaries(last_hit.x + 1, last_hit.y)
+        if check_pos and field.get_value(last_hit.x + 1, last_hit.y) ~= CellState.MISS then
             return last_hit.x + 1
         end
         return first_hit.x - 1

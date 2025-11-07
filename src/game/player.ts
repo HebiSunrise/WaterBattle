@@ -154,6 +154,7 @@ export function Player() {
 
     return {
         setup,
+        create_ship,
         auto_place_ships,
         get_field,
         is_win,

@@ -9,7 +9,7 @@ local Config = ____config.Config
 local ____bot = require("game.bot")
 local Bot = ____bot.Bot
 function ____exports.Game()
-    local render_player, render_field, on_turn_start, on_turn_end, on_shot_end, on_win, shot_animate, on_click, in_cell, render_shot, render_killed, cell_size, gm, PLAYER_INDEX, BOT_INDEX, battle, bot, is_block_input
+    local render_player, render_field, on_turn_start, on_turn_end, on_shot_end, on_win, shot_animate, on_click, in_cell, render_shot, render_killed, cell_size, gm, PLAYER_INDEX, BOT_INDEX, battle, bot, bot_think_timer, is_block_input
     function render_player(st_x, st_y, player)
         render_field(
             st_x,
@@ -48,7 +48,7 @@ function ____exports.Game()
             ____cond9 = ____cond9 or ____switch9 == BOT_INDEX
             if ____cond9 then
                 bot_shot_info = bot.shot()
-                timer.delay(
+                bot_think_timer = timer.delay(
                     1,
                     false,
                     function() return shot_animate(bot_shot_info, Config.start_pos_ufield_x, Config.start_pos_ufield_y, on_shot_end) end
@@ -58,7 +58,19 @@ function ____exports.Game()
         until true
     end
     function on_turn_end()
-        is_block_input = true
+        repeat
+            local ____switch12 = battle.get_current_turn_player_index()
+            local ____cond12 = ____switch12 == BOT_INDEX
+            if ____cond12 then
+                timer.cancel(bot_think_timer)
+                break
+            end
+            ____cond12 = ____cond12 or ____switch12 == PLAYER_INDEX
+            if ____cond12 then
+                is_block_input = true
+                break
+            end
+        until true
     end
     function on_shot_end()
         battle.end_turn()
@@ -70,9 +82,9 @@ function ____exports.Game()
         local x = info.shot_pos.x
         local y = info.shot_pos.y
         repeat
-            local ____switch15 = info.state
-            local ____cond15 = ____switch15 == ShotState.HIT
-            if ____cond15 then
+            local ____switch16 = info.state
+            local ____cond16 = ____switch16 == ShotState.HIT
+            if ____cond16 then
                 render_shot(
                     x,
                     y,
@@ -82,8 +94,8 @@ function ____exports.Game()
                 )
                 break
             end
-            ____cond15 = ____cond15 or ____switch15 == ShotState.MISS
-            if ____cond15 then
+            ____cond16 = ____cond16 or ____switch16 == ShotState.MISS
+            if ____cond16 then
                 render_shot(
                     x,
                     y,
@@ -93,8 +105,8 @@ function ____exports.Game()
                 )
                 break
             end
-            ____cond15 = ____cond15 or ____switch15 == ShotState.KILL
-            if ____cond15 then
+            ____cond16 = ____cond16 or ____switch16 == ShotState.KILL
+            if ____cond16 then
                 render_killed(
                     x,
                     y,
@@ -104,8 +116,8 @@ function ____exports.Game()
                 )
                 break
             end
-            ____cond15 = ____cond15 or ____switch15 == ShotState.ERROR
-            if ____cond15 then
+            ____cond16 = ____cond16 or ____switch16 == ShotState.ERROR
+            if ____cond16 then
                 return
             end
         until true

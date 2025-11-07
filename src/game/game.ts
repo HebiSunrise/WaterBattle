@@ -29,6 +29,7 @@ export function Game() {
     const battle = Battle();
     const bot = Bot(battle, BOT_INDEX);
 
+    let bot_think_timer: hash;
     let is_block_input = true;
 
     function init() {
@@ -70,13 +71,20 @@ export function Game() {
             case BOT_INDEX:
                 // NOTE: если бот, то вызывать его логику
                 const bot_shot_info = bot.shot();
-                timer.delay(1, false, () => shot_animate(bot_shot_info, Config.start_pos_ufield_x, Config.start_pos_ufield_y, on_shot_end));
+                bot_think_timer = timer.delay(1, false, () => shot_animate(bot_shot_info, Config.start_pos_ufield_x, Config.start_pos_ufield_y, on_shot_end));
                 break;
         }
     }
 
     function on_turn_end() {
-        is_block_input = true;
+        switch (battle.get_current_turn_player_index()) {
+            case BOT_INDEX:
+                timer.cancel(bot_think_timer);
+                break;
+            case PLAYER_INDEX:
+                is_block_input = true;
+                break;
+        }
     }
 
     // NOTE: нужна для того чтобы можно было закончить ход именно после выстрела

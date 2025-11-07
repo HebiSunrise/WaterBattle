@@ -182,6 +182,7 @@ function ____exports.Player()
     end
     return {
         setup = setup,
+        create_ship = create_ship,
         auto_place_ships = auto_place_ships,
         get_field = get_field,
         is_win = is_win,
