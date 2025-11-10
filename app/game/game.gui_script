@@ -1,13 +1,38 @@
 local ____exports = {}
 local druid = require("druid.druid")
+local ____game = require("game.game")
+local PlayerIndex = ____game.PlayerIndex
 function ____exports.init(self)
     self.druid = druid.new(self)
     self.druid:new_button(
         "reset",
         function()
-            GameStorage.set("battle_state", {})
-            GameStorage.set("bot_state", {})
-            Scene.restart()
+            EventBus.send("ON_RESET", {})
+        end
+    )
+    EventBus.on(
+        "ON_SWIYCH_TURN",
+        function(index)
+            local turm_marker = gui.get_node("turm_marker")
+            repeat
+                local ____switch5 = index
+                local ____cond5 = ____switch5 == PlayerIndex.PLAYER
+                if ____cond5 then
+                    gui.set_rotation(
+                        turm_marker,
+                        vmath.vector3(0, 0, 180)
+                    )
+                    break
+                end
+                ____cond5 = ____cond5 or ____switch5 == PlayerIndex.BOT
+                if ____cond5 then
+                    gui.set_rotation(
+                        turm_marker,
+                        vmath.vector3(0, 0, 0)
+                    )
+                    break
+                end
+            until true
         end
     )
 end
@@ -22,6 +47,7 @@ function ____exports.on_message(self, message_id, message, sender)
 end
 function ____exports.final(self)
     self.druid:final()
+    EventBus.off_all_current_script()
 end
 init = ____exports.init
 on_input = ____exports.on_input

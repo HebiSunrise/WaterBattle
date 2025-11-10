@@ -5,6 +5,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import * as druid from 'druid.druid';
+import { PlayerIndex } from './game';
 
 interface props {
     druid: DruidClass;
@@ -13,9 +14,18 @@ interface props {
 export function init(this: props): void {
     this.druid = druid.new(this);
     this.druid.new_button('reset', function () {
-        GameStorage.set('battle_state', {});
-        GameStorage.set('bot_state', {});
-        Scene.restart();
+        EventBus.send('ON_RESET', {});
+    });
+    EventBus.on('ON_SWIYCH_TURN', (index: number) => {
+        const turm_marker = gui.get_node('turm_marker');
+        switch (index) {
+            case PlayerIndex.PLAYER:
+                gui.set_rotation(turm_marker, vmath.vector3(0, 0, 180));
+                break;
+            case PlayerIndex.BOT:
+                gui.set_rotation(turm_marker, vmath.vector3(0, 0, 0));
+                break;
+        }
     });
 }
 
@@ -33,5 +43,6 @@ export function on_message(this: props, message_id: string | hash, message: any,
 
 export function final(this: props): void {
     this.druid.final();
+    EventBus.off_all_current_script();
 }
 

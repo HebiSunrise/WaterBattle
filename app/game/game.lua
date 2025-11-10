@@ -10,8 +10,13 @@ local ____field = require("game.field")
 local CellState = ____field.CellState
 local ____bot = require("game.bot")
 local Bot = ____bot.Bot
+____exports.PlayerIndex = PlayerIndex or ({})
+____exports.PlayerIndex.PLAYER = 0
+____exports.PlayerIndex[____exports.PlayerIndex.PLAYER] = "PLAYER"
+____exports.PlayerIndex.BOT = 1
+____exports.PlayerIndex[____exports.PlayerIndex.BOT] = "BOT"
 function ____exports.Game()
-    local render_player, render_field, on_turn_start, on_turn_end, on_shot_end, on_win, shot_animate, on_click, in_cell, render_shot, render_killed, cell_size, gm, PLAYER_INDEX, BOT_INDEX, battle, bot, bot_think_timer, is_block_input
+    local render_player, render_field, on_turn_start, on_turn_end, on_shot_end, on_win, shot_animate, on_click, in_cell, render_shot, render_killed, reset, cell_size, gm, battle, bot, bot_think_timer, is_block_input
     function render_player(st_x, st_y, player)
         render_field(
             st_x,
@@ -62,21 +67,21 @@ function ____exports.Game()
             end
         end
     end
-    function on_turn_start()
+    function on_turn_start(index)
         GameStorage.set(
             "battle_state",
             battle.save_state()
         )
-        local idx = battle.get_current_turn_player_index()
+        EventBus.send("ON_SWIYCH_TURN", index)
         repeat
-            local ____switch11 = idx
+            local ____switch11 = index
             local bot_shot_info
-            local ____cond11 = ____switch11 == PLAYER_INDEX
+            local ____cond11 = ____switch11 == ____exports.PlayerIndex.PLAYER
             if ____cond11 then
                 is_block_input = false
                 break
             end
-            ____cond11 = ____cond11 or ____switch11 == BOT_INDEX
+            ____cond11 = ____cond11 or ____switch11 == ____exports.PlayerIndex.BOT
             if ____cond11 then
                 GameStorage.set(
                     "bot_state",
@@ -92,15 +97,15 @@ function ____exports.Game()
             end
         until true
     end
-    function on_turn_end()
+    function on_turn_end(index)
         repeat
-            local ____switch14 = battle.get_current_turn_player_index()
-            local ____cond14 = ____switch14 == BOT_INDEX
+            local ____switch14 = index
+            local ____cond14 = ____switch14 == ____exports.PlayerIndex.BOT
             if ____cond14 then
                 timer.cancel(bot_think_timer)
                 break
             end
-            ____cond14 = ____cond14 or ____switch14 == PLAYER_INDEX
+            ____cond14 = ____cond14 or ____switch14 == ____exports.PlayerIndex.PLAYER
             if ____cond14 then
                 is_block_input = true
                 break
@@ -110,8 +115,8 @@ function ____exports.Game()
     function on_shot_end()
         battle.end_turn()
     end
-    function on_win()
-        log("Победил игрок " .. tostring(battle.get_current_turn_player_index()))
+    function on_win(index)
+        log("Победил игрок " .. tostring(index))
     end
     function shot_animate(info, st_pos_fld_x, st_pos_fld_y, on_end)
         local x = info.shot_pos.x
@@ -204,15 +209,19 @@ function ____exports.Game()
             end
         end
     end
+    function reset()
+        GameStorage.set("battle_state", {})
+        GameStorage.set("bot_state", {})
+        Scene.restart()
+    end
     cell_size = 34
     gm = GoManager()
-    PLAYER_INDEX = 0
-    BOT_INDEX = 1
     battle = Battle()
-    bot = Bot(battle, BOT_INDEX)
+    bot = Bot(battle, ____exports.PlayerIndex.BOT)
     is_block_input = true
     local function init()
         EventBus.on("MSG_ON_UP", on_click)
+        EventBus.on("ON_RESET", reset)
         battle.setup({
             width = Config.field_width,
             height = Config.field_height,
@@ -229,14 +238,14 @@ function ____exports.Game()
         render_player(
             Config.start_pos_ufield_x,
             Config.start_pos_ufield_y,
-            battle.get_player(PLAYER_INDEX)
+            battle.get_player(____exports.PlayerIndex.PLAYER)
         )
         render_player(
             Config.start_pos_efield_x,
             Config.start_pos_efield_y,
-            battle.get_player(BOT_INDEX)
+            battle.get_player(____exports.PlayerIndex.BOT)
         )
-        battle.start()
+        timer.delay(0.1, false, battle.start)
     end
     local function on_message(message_id, message)
         if is_block_input then

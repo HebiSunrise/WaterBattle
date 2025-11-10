@@ -5,6 +5,58 @@ fonts {
 }
 nodes {
   position {
+    x: 394.0
+    y: 336.0
+  }
+  size {
+    x: 40.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "turm_marker"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+  visible: false
+}
+nodes {
+  position {
+    x: -10.0
+  }
+  rotation {
+    z: 45.0
+  }
+  size {
+    x: 3.0
+    y: 20.0
+  }
+  type: TYPE_BOX
+  id: "up"
+  pivot: PIVOT_NW
+  parent: "turm_marker"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: -8.0
+    y: -2.0
+  }
+  rotation {
+    z: 135.0
+  }
+  size {
+    x: 3.0
+    y: 20.0
+  }
+  type: TYPE_BOX
+  id: "down"
+  pivot: PIVOT_NW
+  parent: "turm_marker"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
     x: 77.0
     y: 78.0
   }

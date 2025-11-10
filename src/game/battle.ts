@@ -23,9 +23,9 @@ export interface ShotInfo {
 export interface BattleConfig {
     width: number;
     height: number;
-    start_turn_callback: VoidCallback;
-    end_turn_callback: VoidCallback;
-    win_callback: VoidCallback;
+    start_turn_callback: BattleCallback;
+    end_turn_callback: BattleCallback;
+    win_callback: BattleCallback;
 }
 
 export interface BattleState {
@@ -33,7 +33,7 @@ export interface BattleState {
     players: PlayerState[];
 }
 
-type VoidCallback = () => void;
+type BattleCallback = (index: number) => void;
 
 export type ShawCallBack = (x: number, y: number, player: Player) => void;
 
@@ -41,9 +41,9 @@ export function Battle() {
     const players: Player[] = [];
     let current_turn_player_index = 0;
     let current_turn_player_shot_state: ShotState;
-    let start_turn_cb: VoidCallback;
-    let end_turn_cb: VoidCallback;
-    let win_cb: VoidCallback;
+    let start_turn_cb: BattleCallback;
+    let end_turn_cb: BattleCallback;
+    let win_cb: BattleCallback;
     let turn_timer: hash;
 
     function setup(config: BattleConfig) {
@@ -79,15 +79,15 @@ export function Battle() {
 
     function start_turn() {
         current_turn_player_shot_state = ShotState.ERROR;
-        turn_timer = timer.delay(5, false, end_turn);
-        start_turn_cb();
+        turn_timer = timer.delay(15, false, end_turn);
+        start_turn_cb(current_turn_player_index);
     }
 
     function end_turn() {
         timer.cancel(turn_timer);
-        end_turn_cb();
+        end_turn_cb(current_turn_player_index);
         if (is_win()) {
-            win_cb();
+            win_cb(current_turn_player_index);
             return;
         }
         if (is_need_switch_turn())

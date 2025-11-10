@@ -21,19 +21,23 @@ import { CellState, Field } from './field';
 import { Player } from './player';
 import { Bot, BotState } from './bot';
 
+export enum PlayerIndex {
+    PLAYER = 0,
+    BOT = 1
+}
+
 export function Game() {
     const cell_size = 34;
     const gm = GoManager();
-    const PLAYER_INDEX = 0;
-    const BOT_INDEX = 1;
     const battle = Battle();
-    const bot = Bot(battle, BOT_INDEX);
+    const bot = Bot(battle, PlayerIndex.BOT);
 
     let bot_think_timer: hash;
     let is_block_input = true;
 
     function init() {
         EventBus.on('MSG_ON_UP', on_click);
+        EventBus.on('ON_RESET', reset);
 
         battle.setup({
             width: Config.field_width,
@@ -51,9 +55,9 @@ export function Game() {
             bot.load_state(GameStorage.get("bot_state") as BotState);
         }
 
-        render_player(Config.start_pos_ufield_x, Config.start_pos_ufield_y, battle.get_player(PLAYER_INDEX));
-        render_player(Config.start_pos_efield_x, Config.start_pos_efield_y, battle.get_player(BOT_INDEX));
-        battle.start();
+        render_player(Config.start_pos_ufield_x, Config.start_pos_ufield_y, battle.get_player(PlayerIndex.PLAYER));
+        render_player(Config.start_pos_efield_x, Config.start_pos_efield_y, battle.get_player(PlayerIndex.BOT));
+        timer.delay(0.1, false, battle.start);
     }
 
     function render_player(st_x: number, st_y: number, player: Player) {
@@ -77,15 +81,15 @@ export function Game() {
         }
     }
 
-    function on_turn_start() {
+    function on_turn_start(index: number) {
         GameStorage.set("battle_state", battle.save_state());
-        const idx = battle.get_current_turn_player_index();
-        switch (idx) {
-            case PLAYER_INDEX:
+        EventBus.send("ON_SWIYCH_TURN", index);
+        switch (index) {
+            case PlayerIndex.PLAYER:
                 // NOTE: если игрок, то нужно просто разблокировать инпут, остальная логика завист от него
                 is_block_input = false;
                 break;
-            case BOT_INDEX:
+            case PlayerIndex.BOT:
                 // NOTE: если бот, то вызывать его логику
                 GameStorage.set("bot_state", bot.save_state());
                 const bot_shot_info = bot.shot();
@@ -94,12 +98,12 @@ export function Game() {
         }
     }
 
-    function on_turn_end() {
-        switch (battle.get_current_turn_player_index()) {
-            case BOT_INDEX:
+    function on_turn_end(index: number) {
+        switch (index) {
+            case PlayerIndex.BOT:
                 timer.cancel(bot_think_timer);
                 break;
-            case PLAYER_INDEX:
+            case PlayerIndex.PLAYER:
                 is_block_input = true;
                 break;
         }
@@ -110,10 +114,9 @@ export function Game() {
         battle.end_turn();
     }
 
-    function on_win() {
-        log("Победил игрок " + battle.get_current_turn_player_index());
+    function on_win(index: number) {
+        log("Победил игрок " + index);
     }
-
 
     function shot_animate(info: ShotInfo, st_pos_fld_x: number, st_pos_fld_y: number, on_end: () => void) {
         const x = info.shot_pos.x;
@@ -169,6 +172,12 @@ export function Game() {
             const cord = data[i];
             render_shot(cord.x, cord.y, "miss", field_start_pos_x, field_start_pos_y);
         }
+    }
+
+    function reset() {
+        GameStorage.set('battle_state', {});
+        GameStorage.set('bot_state', {});
+        Scene.restart();
     }
 
     init();

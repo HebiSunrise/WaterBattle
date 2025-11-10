@@ -46,5 +46,7 @@ export const _STORAGE_CONFIG = {
 
 // пользовательские сообщения под конкретный проект, доступны типы через глобальную тип-переменную UserMessages
 export type _UserMessages = {
-    HOME_LOADED: VoidMessage
+    HOME_LOADED: VoidMessage,
+    ON_RESET: VoidMessage,
+    ON_SWIYCH_TURN: number,
 };

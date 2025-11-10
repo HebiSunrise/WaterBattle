@@ -25,14 +25,14 @@ function ____exports.Battle()
     local start_turn, end_turn, is_need_switch_turn, switch_turn, get_current_turn_player_index, get_opponent, is_win, players, current_turn_player_index, current_turn_player_shot_state, start_turn_cb, end_turn_cb, win_cb, turn_timer
     function start_turn()
         current_turn_player_shot_state = ____exports.ShotState.ERROR
-        turn_timer = timer.delay(5, false, end_turn)
-        start_turn_cb()
+        turn_timer = timer.delay(15, false, end_turn)
+        start_turn_cb(current_turn_player_index)
     end
     function end_turn()
         timer.cancel(turn_timer)
-        end_turn_cb()
+        end_turn_cb(current_turn_player_index)
         if is_win() then
-            win_cb()
+            win_cb(current_turn_player_index)
             return
         end
         if is_need_switch_turn() then
