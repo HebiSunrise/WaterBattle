@@ -35,7 +35,7 @@ export function Player() {
 
     let ships_uids: number[] = [];
     let ships_bb: { [ship_uid: number]: ShipBB } = {};
-    let ships_lifes: { [ship_uid: number]: number } = {};
+    const ships_lifes: { [ship_uid: number]: number } = {};
     let index_to_ship_uid: { [index: number]: number } = {};
 
     function setup(fieldWidth: number, fieldHiegth: number) {
@@ -73,7 +73,6 @@ export function Player() {
                     else {
                         is_search = false;
                         create_ship(start.x, start.y, ships[i].length, direction);
-                        //log(`start: x:${start.x}, y:${start.y} end: x:${end.x}, y:${end.y}, dir:${direction}, leng:${ships[i].length}`);
                     }
                 }
             }
@@ -164,9 +163,24 @@ export function Player() {
     function load_state(state: PlayerState) {
         field.load_state(state.field);
         ships_uids = state.ships_uids;
-        ships_bb = state.ships_bb;
-        ships_lifes = state.ships_lifes;
-        index_to_ship_uid = state.index_to_ship_uid;
+        ships_bb = {};
+        index_to_ship_uid = {};
+        for (const [key, value] of Object.entries(state.ships_bb)) {
+            const index = tonumber(key);
+            if (index != undefined) {
+                ships_bb[index] = copy(value);
+            }
+        }
+        for (const [key, value] of Object.entries(state.ships_lifes)) {
+            const index = tonumber(key);
+            if (index != undefined)
+                ships_lifes[index] = value;
+        }
+        for (const [key, value] of Object.entries(state.index_to_ship_uid)) {
+            const index = tonumber(key);
+            if (index != undefined)
+                index_to_ship_uid[index] = value;
+        }
     }
 
     function save_state(): PlayerState {
@@ -178,7 +192,7 @@ export function Player() {
             index_to_ship_uid: {}
         };
         for (const [key, value] of Object.entries(ships_bb)) {
-            result.ships_bb[key] = value;
+            result.ships_bb[key] = copy(value);
         }
         for (const [key, value] of Object.entries(ships_lifes)) {
             result.ships_lifes[key] = value;
@@ -186,7 +200,6 @@ export function Player() {
         for (const [key, value] of Object.entries(index_to_ship_uid)) {
             result.index_to_ship_uid[key] = value;
         }
-
         return result;
     }
 

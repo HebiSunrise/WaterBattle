@@ -17,9 +17,9 @@ import { generate_random_integer } from "../utils/utils";
 import { Battle, BattleState, ShotInfo, ShotState } from './battle';
 import { Messages } from '../modules/modules_const';
 import { Config } from './config';
-import { Field } from './field';
+import { CellState, Field } from './field';
 import { Player } from './player';
-import { Bot } from './bot';
+import { Bot, BotState } from './bot';
 
 export function Game() {
     const cell_size = 34;
@@ -43,14 +43,17 @@ export function Game() {
             win_callback: on_win
         });
 
-        // battle.load_state(GameStorage.get("battle_state") as BattleState);
         bot.setup();
+
+        const state = GameStorage.get("battle_state") as BattleState;
+        if (state.current_turn_player_index != undefined) {
+            battle.load_state(GameStorage.get("battle_state") as BattleState);
+            bot.load_state(GameStorage.get("bot_state") as BotState);
+        }
+
         render_player(Config.start_pos_ufield_x, Config.start_pos_ufield_y, battle.get_player(PLAYER_INDEX));
         render_player(Config.start_pos_efield_x, Config.start_pos_efield_y, battle.get_player(BOT_INDEX));
         battle.start();
-
-        // log(battle.get_player(0).get_field().debug());
-        // log(battle.get_player(1).get_field().debug());
     }
 
     function render_player(st_x: number, st_y: number, player: Player) {
@@ -61,12 +64,21 @@ export function Game() {
         for (let y = 0; y < field.height; y++) {
             for (let x = 0; x < field.width; x++) {
                 gm.make_go("cell", vmath.vector3(x * 34 + start_pos_x, y * (-34) + start_pos_y, 0));
+                switch (field.get_value(x, y)) {
+                    case CellState.HIT:
+                        render_shot(x, y, "hit", start_pos_x, start_pos_y);
+                        break;
+                    case CellState.MISS:
+                        render_shot(x, y, "miss", start_pos_x, start_pos_y);
+                        break;
+
+                }
             }
         }
     }
 
     function on_turn_start() {
-        // GameStorage.set("battle_state", battle.save_state());
+        GameStorage.set("battle_state", battle.save_state());
         const idx = battle.get_current_turn_player_index();
         switch (idx) {
             case PLAYER_INDEX:
@@ -75,6 +87,7 @@ export function Game() {
                 break;
             case BOT_INDEX:
                 // NOTE: если бот, то вызывать его логику
+                GameStorage.set("bot_state", bot.save_state());
                 const bot_shot_info = bot.shot();
                 bot_think_timer = timer.delay(1, false, () => shot_animate(bot_shot_info, Config.start_pos_ufield_x, Config.start_pos_ufield_y, on_shot_end));
                 break;

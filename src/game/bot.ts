@@ -1,13 +1,22 @@
 /* eslint-disable no-case-declarations */
-import { generate_random_integer } from "../utils/utils";
+import { copy, generate_random_integer } from "../utils/utils";
 import { Battle, ShotInfo, ShotState } from "./battle";
 import { CellState, Field } from "./field";
 
+export interface BotState {
+    last_hit: { x: number, y: number };
+    first_hit: { x: number, y: number };
+    available_indexes: number[];
+    neighbors: { x: number, y: number }[];
+    was_hit: boolean;
+    was_no_hit: boolean;
+}
+
 export function Bot(battle: Battle, player_idx: number) {
-    const last_hit = { x: -1, y: -1 };
-    const first_hit = { x: -1, y: -1 };
-    const available_indexes: number[] = [];
-    const neighbors: { x: number, y: number }[] = [];
+    let last_hit = { x: -1, y: -1 };
+    let first_hit = { x: -1, y: -1 };
+    let available_indexes: number[] = [];
+    let neighbors: { x: number, y: number }[] = [];
     let was_hit = false;
     let was_no_hit = true;
 
@@ -196,6 +205,32 @@ export function Bot(battle: Battle, player_idx: number) {
         return first_hit.x - 1;
     }
 
+    function load_state(state: BotState) {
+        last_hit = state.last_hit;
+        first_hit = state.first_hit;
+        available_indexes = state.available_indexes;
+        neighbors = state.neighbors;
+        was_hit = state.was_hit;
+        was_no_hit = state.was_no_hit;
+    }
 
-    return { setup, shot };
+    function save_state(): BotState {
+        const result: BotState = {
+            last_hit: last_hit,
+            first_hit: first_hit,
+            available_indexes: copy(available_indexes),
+            neighbors: copy(neighbors),
+            was_hit: was_hit,
+            was_no_hit: was_no_hit,
+        };
+
+        return result;
+    }
+
+    return {
+        setup,
+        shot,
+        load_state,
+        save_state
+    };
 }

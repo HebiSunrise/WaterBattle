@@ -6,6 +6,8 @@ local Battle = ____battle.Battle
 local ShotState = ____battle.ShotState
 local ____config = require("game.config")
 local Config = ____config.Config
+local ____field = require("game.field")
+local CellState = ____field.CellState
 local ____bot = require("game.bot")
 local Bot = ____bot.Bot
 function ____exports.Game()
@@ -28,6 +30,31 @@ function ____exports.Game()
                             "cell",
                             vmath.vector3(x * 34 + start_pos_x, y * -34 + start_pos_y, 0)
                         )
+                        repeat
+                            local ____switch9 = field.get_value(x, y)
+                            local ____cond9 = ____switch9 == CellState.HIT
+                            if ____cond9 then
+                                render_shot(
+                                    x,
+                                    y,
+                                    "hit",
+                                    start_pos_x,
+                                    start_pos_y
+                                )
+                                break
+                            end
+                            ____cond9 = ____cond9 or ____switch9 == CellState.MISS
+                            if ____cond9 then
+                                render_shot(
+                                    x,
+                                    y,
+                                    "miss",
+                                    start_pos_x,
+                                    start_pos_y
+                                )
+                                break
+                            end
+                        until true
                         x = x + 1
                     end
                 end
@@ -36,17 +63,25 @@ function ____exports.Game()
         end
     end
     function on_turn_start()
+        GameStorage.set(
+            "battle_state",
+            battle.save_state()
+        )
         local idx = battle.get_current_turn_player_index()
         repeat
-            local ____switch9 = idx
+            local ____switch11 = idx
             local bot_shot_info
-            local ____cond9 = ____switch9 == PLAYER_INDEX
-            if ____cond9 then
+            local ____cond11 = ____switch11 == PLAYER_INDEX
+            if ____cond11 then
                 is_block_input = false
                 break
             end
-            ____cond9 = ____cond9 or ____switch9 == BOT_INDEX
-            if ____cond9 then
+            ____cond11 = ____cond11 or ____switch11 == BOT_INDEX
+            if ____cond11 then
+                GameStorage.set(
+                    "bot_state",
+                    bot.save_state()
+                )
                 bot_shot_info = bot.shot()
                 bot_think_timer = timer.delay(
                     1,
@@ -59,14 +94,14 @@ function ____exports.Game()
     end
     function on_turn_end()
         repeat
-            local ____switch12 = battle.get_current_turn_player_index()
-            local ____cond12 = ____switch12 == BOT_INDEX
-            if ____cond12 then
+            local ____switch14 = battle.get_current_turn_player_index()
+            local ____cond14 = ____switch14 == BOT_INDEX
+            if ____cond14 then
                 timer.cancel(bot_think_timer)
                 break
             end
-            ____cond12 = ____cond12 or ____switch12 == PLAYER_INDEX
-            if ____cond12 then
+            ____cond14 = ____cond14 or ____switch14 == PLAYER_INDEX
+            if ____cond14 then
                 is_block_input = true
                 break
             end
@@ -82,9 +117,9 @@ function ____exports.Game()
         local x = info.shot_pos.x
         local y = info.shot_pos.y
         repeat
-            local ____switch16 = info.state
-            local ____cond16 = ____switch16 == ShotState.HIT
-            if ____cond16 then
+            local ____switch18 = info.state
+            local ____cond18 = ____switch18 == ShotState.HIT
+            if ____cond18 then
                 render_shot(
                     x,
                     y,
@@ -94,8 +129,8 @@ function ____exports.Game()
                 )
                 break
             end
-            ____cond16 = ____cond16 or ____switch16 == ShotState.MISS
-            if ____cond16 then
+            ____cond18 = ____cond18 or ____switch18 == ShotState.MISS
+            if ____cond18 then
                 render_shot(
                     x,
                     y,
@@ -105,8 +140,8 @@ function ____exports.Game()
                 )
                 break
             end
-            ____cond16 = ____cond16 or ____switch16 == ShotState.KILL
-            if ____cond16 then
+            ____cond18 = ____cond18 or ____switch18 == ShotState.KILL
+            if ____cond18 then
                 render_killed(
                     x,
                     y,
@@ -116,8 +151,8 @@ function ____exports.Game()
                 )
                 break
             end
-            ____cond16 = ____cond16 or ____switch16 == ShotState.ERROR
-            if ____cond16 then
+            ____cond18 = ____cond18 or ____switch18 == ShotState.ERROR
+            if ____cond18 then
                 return
             end
         until true
@@ -186,6 +221,11 @@ function ____exports.Game()
             win_callback = on_win
         })
         bot.setup()
+        local state = GameStorage.get("battle_state")
+        if state.current_turn_player_index ~= nil then
+            battle.load_state(GameStorage.get("battle_state"))
+            bot.load_state(GameStorage.get("bot_state"))
+        end
         render_player(
             Config.start_pos_ufield_x,
             Config.start_pos_ufield_y,

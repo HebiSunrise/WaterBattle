@@ -24,3 +24,7 @@ export function on_input(this: props, action_id: string | hash, action: any): vo
     if (action_id == hash('touch'))
         msg.post('.', action_id, action);
 }
+
+export function final(): void {
+    EventBus.off_all_current_script();
+}

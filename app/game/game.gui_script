@@ -1,0 +1,31 @@
+local ____exports = {}
+local druid = require("druid.druid")
+function ____exports.init(self)
+    self.druid = druid.new(self)
+    self.druid:new_button(
+        "reset",
+        function()
+            GameStorage.set("battle_state", {})
+            GameStorage.set("bot_state", {})
+            Scene.restart()
+        end
+    )
+end
+function ____exports.on_input(self, action_id, action)
+    self.druid:on_input(action_id, action)
+end
+function ____exports.update(self, dt)
+    self.druid:update(dt)
+end
+function ____exports.on_message(self, message_id, message, sender)
+    self.druid:on_message(message_id, message, sender)
+end
+function ____exports.final(self)
+    self.druid:final()
+end
+init = ____exports.init
+on_input = ____exports.on_input
+update = ____exports.update
+on_message = ____exports.on_message
+final = ____exports.final
+

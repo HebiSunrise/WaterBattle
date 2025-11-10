@@ -22,5 +22,5 @@ ____exports.ID_YANDEX_METRICA = ""
 ____exports.RATE_FIRST_SHOW = 24 * 60 * 60
 ____exports.RATE_SECOND_SHOW = 3 * 24 * 60 * 60
 ____exports._GAME_CONFIG = {}
-____exports._STORAGE_CONFIG = {resource_manifest = {}, battle_state = {}}
+____exports._STORAGE_CONFIG = {resource_manifest = {}, battle_state = {}, bot_state = {}}
 return ____exports

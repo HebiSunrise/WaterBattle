@@ -13,7 +13,11 @@ function ____exports.on_input(self, action_id, action)
         msg.post(".", action_id, action)
     end
 end
+function ____exports.final()
+    EventBus.off_all_current_script()
+end
 init = ____exports.init
 on_message = ____exports.on_message
 on_input = ____exports.on_input
+final = ____exports.final
 

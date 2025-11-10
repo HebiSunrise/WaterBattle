@@ -3,6 +3,7 @@ local __TS__ArrayIndexOf = ____lualib.__TS__ArrayIndexOf
 local __TS__ArraySplice = ____lualib.__TS__ArraySplice
 local ____exports = {}
 local ____utils = require("utils.utils")
+local copy = ____utils.copy
 local generate_random_integer = ____utils.generate_random_integer
 local ____battle = require("game.battle")
 local ShotState = ____battle.ShotState
@@ -215,6 +216,25 @@ function ____exports.Bot(battle, player_idx)
         delete_neigh()
         return result
     end
-    return {setup = setup, shot = shot}
+    local function load_state(state)
+        last_hit = state.last_hit
+        first_hit = state.first_hit
+        available_indexes = state.available_indexes
+        neighbors = state.neighbors
+        was_hit = state.was_hit
+        was_no_hit = state.was_no_hit
+    end
+    local function save_state()
+        local result = {
+            last_hit = last_hit,
+            first_hit = first_hit,
+            available_indexes = copy(available_indexes),
+            neighbors = copy(neighbors),
+            was_hit = was_hit,
+            was_no_hit = was_no_hit
+        }
+        return result
+    end
+    return {setup = setup, shot = shot, load_state = load_state, save_state = save_state}
 end
 return ____exports

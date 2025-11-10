@@ -185,9 +185,32 @@ function ____exports.Player()
     local function load_state(state)
         field.load_state(state.field)
         ships_uids = state.ships_uids
-        ships_bb = state.ships_bb
-        ships_lifes = state.ships_lifes
-        index_to_ship_uid = state.index_to_ship_uid
+        ships_bb = {}
+        index_to_ship_uid = {}
+        for ____, ____value in ipairs(__TS__ObjectEntries(state.ships_bb)) do
+            local key = ____value[1]
+            local value = ____value[2]
+            local index = tonumber(key)
+            if index ~= nil then
+                ships_bb[index] = copy(value)
+            end
+        end
+        for ____, ____value in ipairs(__TS__ObjectEntries(state.ships_lifes)) do
+            local key = ____value[1]
+            local value = ____value[2]
+            local index = tonumber(key)
+            if index ~= nil then
+                ships_lifes[index] = value
+            end
+        end
+        for ____, ____value in ipairs(__TS__ObjectEntries(state.index_to_ship_uid)) do
+            local key = ____value[1]
+            local value = ____value[2]
+            local index = tonumber(key)
+            if index ~= nil then
+                index_to_ship_uid[index] = value
+            end
+        end
     end
     local function save_state()
         local result = {
@@ -200,7 +223,7 @@ function ____exports.Player()
         for ____, ____value in ipairs(__TS__ObjectEntries(ships_bb)) do
             local key = ____value[1]
             local value = ____value[2]
-            result.ships_bb[key] = value
+            result.ships_bb[key] = copy(value)
         end
         for ____, ____value in ipairs(__TS__ObjectEntries(ships_lifes)) do
             local key = ____value[1]

@@ -38,7 +38,8 @@ export const _GAME_CONFIG = {
 // конфиг с хранилищем  (отсюда не читаем/не пишем, все запрашивается/меняется через GameStorage)
 export const _STORAGE_CONFIG = {
     resource_manifest: {},
-    battle_state: {}
+    battle_state: {},
+    bot_state: {}
 };
 
 
